@@ -6,13 +6,28 @@ Not a static mockup — the dashboard exercises a real data layer with mock Rout
 
 ---
 
+## Live demo
+
+**https://meridian-dashboard-bice.vercel.app/**
+
+![Dashboard overview](./public/overview.jpg)
+
+## Performance
+
+Lighthouse run against the live deployment scores well across the board: **Performance 92 · Accessibility 91 · Best Practices 100 · SEO 100**.
+
+- Server-rendered initial data; the chart and table are interactive client components
+- Next.js App Router with font optimization for a fast first paint
+- Semantic HTML, keyboard accessible, and color-contrast compliant
+
+![Performance scores](./public/performance.jpg)
+
 ## Highlights
 
 | Area | What's implemented |
 | --- | --- |
 | **Architecture** | Server Component fetches initial data from mock Route Handlers; all interactive views are Client Components |
 | **Data layer** | `GET /api/metrics`, `GET /api/trend`, `GET /api/subscriptions` — deterministic mock data, no external services |
-| **UI states** | Loading skeletons, empty states, and error panels with retry — toggled live from the UI or via URL |
 | **Charts** | MRR trend: stacked new/expansion/churned bars + total MRR line (Recharts + shadcn chart) |
 | **KPI cards** | MRR, ARR, active subscriptions, net revenue retention — with deltas and sparklines |
 | **Table** | Search, plan/status filters, column sorting, pagination, CSV export, status & health badges |
@@ -26,7 +41,7 @@ npm run dev
 ```
 
 Open http://localhost:3000.
-
+<!-- 
 ## Demo states (the point of this demo)
 
 The **API State Simulator** bar under the top bar switches the whole dashboard between:
@@ -67,7 +82,7 @@ git push -u origin main
 npm i -g vercel
 vercel login
 vercel --prod
-```
+``` -->
 
 ## Project structure
 
