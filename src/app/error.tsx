@@ -31,8 +31,8 @@ export default function DashboardError({
           </div>
           <CardTitle>Something went wrong</CardTitle>
           <CardDescription>
-            The dashboard failed to render. You can retry the render, or switch
-            the API state simulator back to &ldquo;Live&rdquo;.
+            The dashboard failed to render. You can retry, or head back to the
+            overview page.
           </CardDescription>
         </CardHeader>
         <CardContent>

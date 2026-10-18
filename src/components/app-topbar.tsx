@@ -3,13 +3,10 @@
 import * as React from "react";
 import { toast } from "sonner";
 import {
-  Bell,
   Calendar,
   RefreshCw,
-  Search,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -27,12 +24,11 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { NotificationsBell } from "@/components/dashboard/notifications-bell";
 import { cn } from "@/lib/utils";
 import type { Range } from "@/lib/types";
 
 interface AppTopbarProps {
-  search: string;
-  onSearchChange: (value: string) => void;
   range: Range;
   onRangeChange: (range: Range) => void;
   loading: boolean;
@@ -40,8 +36,6 @@ interface AppTopbarProps {
 }
 
 export function AppTopbar({
-  search,
-  onSearchChange,
   range,
   onRangeChange,
   loading,
@@ -59,21 +53,6 @@ export function AppTopbar({
           <li className="font-medium">Overview</li>
         </ol>
       </nav>
-
-      {/* Search */}
-      <div className="relative ml-auto w-36 min-w-0 sm:ml-6 sm:w-64 lg:w-80">
-        <Search
-          className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
-          aria-hidden="true"
-        />
-        <Input
-          value={search}
-          onChange={(e) => onSearchChange(e.target.value)}
-          placeholder="Search companies…"
-          aria-label="Search companies by name or plan"
-          className="h-9 pl-8"
-        />
-      </div>
 
       <div className="ml-auto flex items-center gap-0.5 sm:gap-1">
         {/* Date range */}
@@ -108,23 +87,7 @@ export function AppTopbar({
 
         <ThemeToggle />
 
-        <Button
-          variant="ghost"
-          size="icon"
-          className="relative h-9 w-9"
-          aria-label="Notifications, 3 unread"
-          onClick={() =>
-            toast.info("3 unread notifications", {
-              description: "Notifications are mocked in this portfolio demo.",
-            })
-          }
-        >
-          <Bell className="h-4 w-4" />
-          <span
-            aria-hidden="true"
-            className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-destructive"
-          />
-        </Button>
+        <NotificationsBell />
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -144,7 +107,7 @@ export function AppTopbar({
           <DropdownMenuContent align="end" className="w-48">
             <DropdownMenuLabel>Alex Morgan</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem
+            {/* <DropdownMenuItem
               onClick={() =>
                 toast.info("Profile is mocked in this portfolio demo.")
               }
@@ -157,7 +120,7 @@ export function AppTopbar({
               }
             >
               Settings
-            </DropdownMenuItem>
+            </DropdownMenuItem> */}
             <DropdownMenuSeparator />
             <DropdownMenuItem
               onClick={() => toast.info("Signed out (demo only).")}

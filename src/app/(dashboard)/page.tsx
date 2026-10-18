@@ -1,16 +1,12 @@
 import { headers } from "next/headers";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
-import { isRange, isScenario } from "@/lib/types";
+import { isRange } from "@/lib/types";
 import type { DashboardData, DashboardErrors } from "@/lib/api";
 import type { Metric, Subscription, TrendPoint } from "@/lib/types";
 
-// The dashboard reads `headers()` and `searchParams` and performs server-side
-// fetches, so it must render per-request rather than be statically prerendered.
+// The dashboard reads `headers()` and performs server-side fetches, so it must
+// render per-request rather than be statically prerendered.
 export const instant = false;
-
-interface PageProps {
-  searchParams: Promise<{ scenario?: string; range?: string }>;
-}
 
 async function safeFetch<T>(
   url: string,
@@ -33,11 +29,7 @@ async function safeFetch<T>(
   }
 }
 
-export default async function DashboardPage({ searchParams }: PageProps) {
-  const params = await searchParams;
-  const scenario = isScenario(params.scenario) ? params.scenario : "live";
-  const range = isRange(params.range) ? params.range : "12m";
-
+export default async function DashboardPage() {
   // Server Components cannot use relative URLs, so resolve the absolute base
   // from request headers. Works in dev, preview deploys, and on Vercel
   // (x-forwarded-proto / host are set by the platform).
@@ -45,14 +37,11 @@ export default async function DashboardPage({ searchParams }: PageProps) {
   const proto = headerList.get("x-forwarded-proto") ?? "http";
   const host = headerList.get("host") ?? "localhost:3000";
   const base = `${proto}://${host}`;
-  const query = `scenario=${scenario}&range=${range}`;
 
   const [metrics, trend, subscriptions] = await Promise.all([
-    safeFetch<{ metrics: Metric[] }>(`${base}/api/metrics?${query}`),
-    safeFetch<{ points: TrendPoint[] }>(`${base}/api/trend?${query}`),
-    safeFetch<{ subscriptions: Subscription[] }>(
-      `${base}/api/subscriptions?${query}`,
-    ),
+    safeFetch<{ metrics: Metric[] }>(`${base}/api/metrics?range=12m`),
+    safeFetch<{ points: TrendPoint[] }>(`${base}/api/trend?range=12m`),
+    safeFetch<{ subscriptions: Subscription[] }>(`${base}/api/subscriptions`),
   ]);
 
   const data: DashboardData = {
@@ -70,8 +59,7 @@ export default async function DashboardPage({ searchParams }: PageProps) {
     <DashboardShell
       initialData={data}
       initialErrors={errors}
-      initialScenario={scenario}
-      initialRange={range}
+      initialRange="12m"
     />
   );
 }

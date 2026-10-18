@@ -305,10 +305,105 @@ export function getMetrics(range: Range): Metric[] {
   ];
 }
 
-/* --------------------------------- helpers -------------------------------- */
+/* --------------------------------- cohorts -------------------------------- */
 
-export const delay = (ms: number) =>
-  new Promise<void>((resolve) => setTimeout(resolve, ms));
+export interface Cohort {
+  /** e.g. "2026-04" */
+  id: string;
+  /** e.g. "Apr 2026" */
+  label: string;
+  size: number;
+  /** retention percentage per month offset — index 0 is the signup month (100) */
+  retention: number[];
+}
 
-export const API_ERROR_MESSAGE =
-  "Revenue data service is temporarily unavailable. Please retry in a moment.";
+export function getCohorts(months = 8, periods = 6): Cohort[] {
+  const now = new Date();
+  const cohorts: Cohort[] = [];
+  for (let i = months - 1; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const size = 60 + Math.floor(rng() * 120);
+    const retention: number[] = [100];
+    let value = 100;
+    for (let p = 1; p < periods; p++) {
+      // later cohorts have had less time to churn — clamp at the current edge
+      if (p > months - 1 - i + 1) {
+        retention.push(Number.NaN); // period not reached yet
+        continue;
+      }
+      value -= 6 + rng() * 9;
+      retention.push(Math.max(38, Math.round(value)));
+    }
+    cohorts.push({
+      id: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`,
+      label: d.toLocaleDateString("en-US", { month: "short", year: "numeric" }),
+      size,
+      retention,
+    });
+  }
+  return cohorts;
+}
+
+/* -------------------------------- invoices -------------------------------- */
+
+export type InvoiceStatus = "paid" | "open" | "overdue";
+
+export interface Invoice {
+  id: string;
+  company: string;
+  amount: number;
+  status: InvoiceStatus;
+  /** ISO date (yyyy-mm-dd) */
+  issued: string;
+  /** ISO date (yyyy-mm-dd) */
+  due: string;
+}
+
+let invoicesCache: Invoice[] | null = null;
+
+export function getInvoices(count = 48): Invoice[] {
+  if (!invoicesCache) {
+    const subs = getSubscriptions().slice(0, count);
+    const now = Date.now();
+    const invoices: Invoice[] = subs.map((s, i) => {
+      const roll = rng();
+      const status: InvoiceStatus =
+        roll < 0.68 ? "paid" : roll < 0.9 ? "open" : "overdue";
+      const issuedOffset = Math.floor(rng() * 45);
+      const issuedDate = new Date(now - issuedOffset * 86400000);
+      const dueDate = new Date(issuedDate.getTime() + 14 * 86400000);
+      return {
+        id: `inv_${String(9200 + i)}`,
+        company: s.company,
+        amount: s.mrr,
+        status,
+        issued: issuedDate.toISOString().slice(0, 10),
+        due: dueDate.toISOString().slice(0, 10),
+      };
+    });
+    invoices.sort((a, b) => b.issued.localeCompare(a.issued));
+    invoicesCache = invoices;
+  }
+  return invoicesCache;
+}
+
+/* ----------------------------- plan distribution ---------------------------- */
+
+export interface PlanSlice {
+  plan: Plan;
+  accounts: number;
+  mrr: number;
+}
+
+export function getPlanDistribution(): PlanSlice[] {
+  const byPlan = new Map<Plan, PlanSlice>();
+  for (const s of getSubscriptions()) {
+    const slice = byPlan.get(s.plan) ?? { plan: s.plan, accounts: 0, mrr: 0 };
+    slice.accounts += 1;
+    slice.mrr += s.mrr;
+    byPlan.set(s.plan, slice);
+  }
+  return [...byPlan.values()].sort(
+    (a, b) => PLANS.indexOf(a.plan) - PLANS.indexOf(b.plan),
+  );
+}

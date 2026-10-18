@@ -45,16 +45,16 @@ const RANGE_LABEL: Record<Range, string> = {
 
 interface TrendChartProps {
   points: TrendPoint[] | null;
-  loading: boolean;
-  error: string | null;
-  onRetry: () => void;
+  loading?: boolean;
+  error?: string | null;
+  onRetry?: () => void;
   range: Range;
 }
 
 export function TrendChart({
   points,
-  loading,
-  error,
+  loading = false,
+  error = null,
   onRetry,
   range,
 }: TrendChartProps) {
@@ -84,7 +84,7 @@ export function TrendChart({
         ) : !points || points.length === 0 ? (
           <SectionEmpty
             title="No trend data"
-            description="The trend endpoint returned an empty series. Switch the API state simulator to Live to restore the dataset."
+            description="The trend endpoint returned an empty series. Try refreshing the data."
           />
         ) : (
           <TrendChartBody points={points} />

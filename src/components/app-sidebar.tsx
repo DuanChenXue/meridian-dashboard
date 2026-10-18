@@ -1,22 +1,20 @@
 "use client";
 
 import * as React from "react";
-import { toast } from "sonner";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
   Building2,
   CreditCard,
   FileBarChart,
   LayoutDashboard,
-  LifeBuoy,
   LineChart,
   Menu,
   Receipt,
-  Settings,
   Users,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
 import {
   Sheet,
   SheetContent,
@@ -26,11 +24,15 @@ import {
 } from "@/components/ui/sheet";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { ThemeToggle } from "@/components/theme-toggle";
+import { cn } from "@/lib/utils";
 
 interface NavItem {
   label: string;
   icon: LucideIcon;
-  active?: boolean;
+  href: string;
+  /** exact match instead of prefix match (used for the Overview route "/") */
+  exact?: boolean;
 }
 
 interface NavSection {
@@ -42,18 +44,18 @@ export const NAV_SECTIONS: NavSection[] = [
   {
     title: "Analytics",
     items: [
-      { label: "Overview", icon: LayoutDashboard, active: true },
-      { label: "Trends", icon: LineChart },
-      { label: "Cohorts", icon: Users },
+      { label: "Overview", icon: LayoutDashboard, href: "/", exact: true },
+      { label: "Trends", icon: LineChart, href: "/trends" },
+      { label: "Cohorts", icon: Users, href: "/cohorts" },
     ],
   },
   {
     title: "Workspace",
     items: [
-      { label: "Subscriptions", icon: CreditCard },
-      { label: "Customers", icon: Building2 },
-      { label: "Invoices", icon: Receipt },
-      { label: "Reports", icon: FileBarChart },
+      { label: "Subscriptions", icon: CreditCard, href: "/subscriptions" },
+      { label: "Customers", icon: Building2, href: "/customers" },
+      { label: "Invoices", icon: Receipt, href: "/invoices" },
+      { label: "Reports", icon: FileBarChart, href: "/reports" },
     ],
   },
 ];
@@ -80,39 +82,37 @@ function BrandMark({ className }: { className?: string }) {
   );
 }
 
-function NavItemButton({
+function NavItemLink({
   item,
+  active,
   onNavigate,
 }: {
   item: NavItem;
+  active: boolean;
   onNavigate?: () => void;
 }) {
   const Icon = item.icon;
   return (
-    <button
-      type="button"
-      onClick={() => {
-        if (!item.active) {
-          toast.info("Portfolio demo", {
-            description: `"${item.label}" is a mocked section — Overview is the live dashboard.`,
-          });
-        }
-        onNavigate?.();
-      }}
-      aria-current={item.active ? "page" : undefined}
-      className={
-        item.active
-          ? "flex w-full items-center gap-3 rounded-md bg-secondary px-2 py-2 text-sm font-medium text-secondary-foreground transition-colors"
-          : "flex w-full items-center gap-3 rounded-md px-2 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary/60 hover:text-foreground"
-      }
+    <Link
+      href={item.href}
+      onClick={onNavigate}
+      aria-current={active ? "page" : undefined}
+      className={cn(
+        "flex w-full items-center gap-3 rounded-md px-2 py-2 text-sm font-medium transition-colors",
+        active
+          ? "bg-secondary text-secondary-foreground"
+          : "text-muted-foreground hover:bg-secondary/60 hover:text-foreground",
+      )}
     >
       <Icon className="h-4 w-4 shrink-0" />
       {item.label}
-    </button>
+    </Link>
   );
 }
 
 function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
+  const pathname = usePathname();
+
   return (
     <nav aria-label="Main navigation" className="flex flex-col gap-6">
       {NAV_SECTIONS.map((section) => (
@@ -121,13 +121,19 @@ function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
             {section.title}
           </p>
           <div className="flex flex-col gap-0.5">
-            {section.items.map((item) => (
-              <NavItemButton
-                key={item.label}
-                item={item}
-                onNavigate={onNavigate}
-              />
-            ))}
+            {section.items.map((item) => {
+              const active = item.exact
+                ? pathname === item.href
+                : pathname.startsWith(item.href);
+              return (
+                <NavItemLink
+                  key={item.href}
+                  item={item}
+                  active={active}
+                  onNavigate={onNavigate}
+                />
+              );
+            })}
           </div>
         </div>
       ))}
@@ -156,6 +162,19 @@ function UserCard() {
   );
 }
 
+function SidebarFooter() {
+  return (
+    <div className="border-t p-4">
+      <div className="flex items-center gap-2">
+        <div className="min-w-0 flex-1">
+          <UserCard />
+        </div>
+        <ThemeToggle />
+      </div>
+    </div>
+  );
+}
+
 export function AppSidebar() {
   const [mobileOpen, setMobileOpen] = React.useState(false);
 
@@ -175,38 +194,11 @@ export function AppSidebar() {
         <div className="flex-1 overflow-y-auto p-4">
           <SidebarNav />
         </div>
-        <div className="border-t p-4">
-          <div className="mb-3 flex flex-col gap-0.5">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="justify-start gap-3 text-muted-foreground"
-              onClick={() =>
-                toast.info("Settings is mocked in this portfolio demo.")
-              }
-            >
-              <Settings className="h-4 w-4" />
-              Settings
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="justify-start gap-3 text-muted-foreground"
-              onClick={() =>
-                toast.info("Help center is mocked in this portfolio demo.")
-              }
-            >
-              <LifeBuoy className="h-4 w-4" />
-              Help &amp; docs
-            </Button>
-          </div>
-          <Separator className="mb-3" />
-          <UserCard />
-        </div>
+        <SidebarFooter />
       </aside>
 
-      {/* Mobile navigation */}
-      <div className="flex items-center md:hidden">
+      {/* Mobile navigation trigger */}
+      <div className="fixed left-2 top-2 z-40 md:hidden">
         <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
           <SheetTrigger asChild>
             <Button
@@ -218,20 +210,17 @@ export function AppSidebar() {
               <Menu className="h-5 w-5" />
             </Button>
           </SheetTrigger>
-          <SheetContent side="left" className="w-72 p-0">
+          <SheetContent side="left" className="flex w-72 flex-col p-0">
             <SheetHeader className="h-16 justify-center border-b px-6 text-left">
               <div className="flex items-center gap-2.5">
                 <BrandMark className="h-7 w-7" />
                 <SheetTitle className="text-sm">Meridian</SheetTitle>
               </div>
             </SheetHeader>
-            <div className="flex flex-col justify-between p-4">
+            <div className="flex-1 overflow-y-auto p-4">
               <SidebarNav onNavigate={() => setMobileOpen(false)} />
-              <div className="mt-6">
-                <Separator className="mb-3" />
-                <UserCard />
-              </div>
             </div>
+            <SidebarFooter />
           </SheetContent>
         </Sheet>
       </div>

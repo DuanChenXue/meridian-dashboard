@@ -1,5 +1,4 @@
 export type Range = "7d" | "30d" | "12m";
-export type Scenario = "live" | "loading" | "empty" | "error";
 
 export type MetricFormat = "currency" | "number" | "percent";
 
@@ -55,12 +54,7 @@ export interface SubscriptionsResponse {
   total: number;
 }
 
-export const SCENARIOS: Scenario[] = ["live", "loading", "empty", "error"];
 export const RANGES: Range[] = ["7d", "30d", "12m"];
-
-export function isScenario(value: string | undefined): value is Scenario {
-  return !!value && (SCENARIOS as string[]).includes(value);
-}
 
 export function isRange(value: string | undefined): value is Range {
   return !!value && (RANGES as string[]).includes(value);

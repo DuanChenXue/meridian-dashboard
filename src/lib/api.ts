@@ -1,10 +1,4 @@
-import type {
-  Metric,
-  Range,
-  Scenario,
-  Subscription,
-  TrendPoint,
-} from "./types";
+import type { Metric, Range, Subscription, TrendPoint } from "./types";
 
 export class ApiError extends Error {
   status: number;
@@ -42,15 +36,10 @@ export interface DashboardErrors {
   subscriptions: string | null;
 }
 
-export function buildQuery(scenario: Scenario, range: Range): string {
-  return `scenario=${scenario}&range=${range}`;
-}
-
 export async function fetchDashboard(
-  scenario: Scenario,
   range: Range,
 ): Promise<{ data: DashboardData; errors: DashboardErrors }> {
-  const q = buildQuery(scenario, range);
+  const q = `range=${range}`;
   const [metrics, trend, subscriptions] = await Promise.allSettled([
     getJson<{ metrics: Metric[] }>(`/api/metrics?${q}`),
     getJson<{ range: Range; points: TrendPoint[] }>(`/api/trend?${q}`),

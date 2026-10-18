@@ -7,7 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 interface SectionErrorProps {
   title?: string;
   message?: string | null;
-  onRetry: () => void;
+  onRetry?: () => void;
 }
 
 export function SectionError({
@@ -27,17 +27,19 @@ export function SectionError({
         <p className="text-sm font-medium">{title}</p>
         <p className="max-w-md text-sm text-muted-foreground">
           {message ??
-            "The API request failed. This is a simulated failure — switch the simulator back to Live, or retry the request."}
+            "The API request failed. Retry the request, or come back a little later."}
         </p>
-        <Button
-          variant="outline"
-          size="sm"
-          className="gap-1.5"
-          onClick={onRetry}
-        >
-          <RotateCcw className="h-3.5 w-3.5" />
-          Retry request
-        </Button>
+        {onRetry ? (
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-1.5"
+            onClick={onRetry}
+          >
+            <RotateCcw className="h-3.5 w-3.5" />
+            Retry request
+          </Button>
+        ) : null}
       </CardContent>
     </Card>
   );

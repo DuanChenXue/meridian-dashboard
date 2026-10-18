@@ -10,7 +10,6 @@ import {
   SearchX,
   X,
 } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -36,6 +35,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { SectionEmpty, SectionError } from "./states";
+import { HealthBadge, PlanBadge, StatusBadge } from "./badges";
 import { formatCurrency, formatDate, formatNumber } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { Plan, Subscription, SubscriptionStatus } from "@/lib/types";
@@ -63,60 +63,6 @@ const STATUS_ORDER: Record<SubscriptionStatus, number> = {
   canceled: 3,
 };
 
-function PlanBadge({ plan }: { plan: Plan }) {
-  if (plan === "Enterprise") return <Badge>Enterprise</Badge>;
-  if (plan === "Growth") return <Badge variant="secondary">Growth</Badge>;
-  return <Badge variant="outline">Starter</Badge>;
-}
-
-function StatusBadge({ status }: { status: SubscriptionStatus }) {
-  switch (status) {
-    case "active":
-      return (
-        <Badge
-          variant="secondary"
-          className="border-transparent bg-emerald-500/15 text-emerald-700 dark:text-emerald-400"
-        >
-          Active
-        </Badge>
-      );
-    case "trialing":
-      return (
-        <Badge
-          variant="outline"
-          className="border-transparent bg-sky-500/15 text-sky-700 dark:text-sky-400"
-        >
-          Trialing
-        </Badge>
-      );
-    case "past_due":
-      return (
-        <Badge
-          variant="outline"
-          className="border-transparent bg-amber-500/15 text-amber-700 dark:text-amber-400"
-        >
-          Past due
-        </Badge>
-      );
-    case "canceled":
-      return <Badge variant="secondary">Canceled</Badge>;
-  }
-}
-
-function HealthBadge({ health }: { health: number }) {
-  const tone =
-    health >= 70
-      ? "border-transparent bg-emerald-500/15 text-emerald-700 dark:text-emerald-400"
-      : health >= 40
-        ? "border-transparent bg-amber-500/15 text-amber-700 dark:text-amber-400"
-        : "border-transparent bg-rose-500/15 text-rose-700 dark:text-rose-400";
-  return (
-    <Badge variant="outline" className={cn("tabular-nums", tone)}>
-      {health}
-    </Badge>
-  );
-}
-
 function csvEscape(value: string | number): string {
   const s = String(value);
   return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
@@ -126,9 +72,9 @@ interface SubscriptionsTableProps {
   subscriptions: Subscription[] | null;
   loading: boolean;
   error: string | null;
-  onRetry: () => void;
-  search: string;
-  onClearSearch: () => void;
+  onRetry?: () => void;
+  search?: string;
+  onClearSearch?: () => void;
 }
 
 export function SubscriptionsTable({
@@ -151,7 +97,7 @@ export function SubscriptionsTable({
 
   const filtered = React.useMemo(() => {
     if (!subscriptions) return [];
-    const q = search.trim().toLowerCase();
+    const q = (search ?? "").trim().toLowerCase();
     const rows = subscriptions.filter((s) => {
       if (planFilter !== "all" && s.plan !== planFilter) return false;
       if (statusFilter !== "all" && s.status !== statusFilter) return false;
@@ -185,6 +131,7 @@ export function SubscriptionsTable({
   React.useEffect(() => {
     setPage(0);
   }, [search, planFilter, statusFilter, pageSize]);
+
 
   const pageCount = Math.max(1, Math.ceil(filtered.length / pageSize));
   const safePage = Math.min(page, pageCount - 1);
@@ -328,7 +275,7 @@ export function SubscriptionsTable({
             </span>
             <button
               type="button"
-              onClick={onClearSearch}
+              onClick={() => onClearSearch?.()}
               className="inline-flex items-center gap-0.5 rounded-md px-1 py-0.5 hover:bg-secondary"
             >
               <X className="h-3 w-3" /> clear
@@ -355,7 +302,7 @@ export function SubscriptionsTable({
           <div className="px-2">
             <SectionEmpty
               title="No subscriptions found"
-              description="The subscriptions endpoint returned an empty dataset. Switch the API state simulator to Live to restore the accounts."
+              description="The subscriptions endpoint returned an empty dataset. Try refreshing the data."
             />
           </div>
         ) : filtered.length === 0 ? (
@@ -376,7 +323,7 @@ export function SubscriptionsTable({
                 onClick={() => {
                   setPlanFilter("all");
                   setStatusFilter("all");
-                  onClearSearch();
+                  onClearSearch?.();
                 }}
               >
                 Reset filters

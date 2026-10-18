@@ -46,7 +46,7 @@ export function MetricCards({
     return (
       <SectionEmpty
         title="No metrics available"
-        description="The metrics endpoint returned an empty list. Switch the API state simulator to Live to restore the dataset."
+        description="The metrics endpoint returned an empty list. Try refreshing the data."
       />
     );
   }
